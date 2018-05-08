@@ -22,10 +22,14 @@ hash docker 2>/dev/null || { echo "docker not found but required"; exit 1; }
 # Update username/password
 # Set CVSS reporting
 # Run Serpico
-docker run -p 127.0.0.1:443:443 -d -it serpicoproject/serpico /bin/bash -l -c \
+docker build . -t moj_serpico
+
+docker run -d -p 127.0.0.1:443:8443 -it moj_serpico /bin/bash -l -c \
     "/usr/bin/yes | ruby /Serpico/scripts/manage_users.rb -u administrator -p password;
-     sed -i 's#\"cvss\":false,#\"cvss\":true,#' /Serpico/config.json;
+     sed -i 's#\"cvss\": false,#\"cvss\": false,\n  \"cvssv3\": true,#' /Serpico/config.json;
      ruby /Serpico/serpico.rb" || { echo "Already have a container listening on 443?"; exit 1; }
+
+sleep 2
 
 echo -n "Importing templates..."
 

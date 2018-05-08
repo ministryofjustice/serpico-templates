@@ -20,7 +20,11 @@ def process_json(args):
 
     for json_file in os.listdir(args.template_directory):
         if json_file.endswith('.json'):
-            json_list.append(json.load(open(args.template_directory + '/' + json_file))[0])
+            obj = json.load(open(args.template_directory + '/' + json_file))
+            if type(obj) == list:
+                json_list.append(json.load(open(args.template_directory + '/' + json_file))[0])
+            else:
+                json_list.append(json.load(open(args.template_directory + '/' + json_file)))
 
     with open(args.json_file,'w') as fp:
         json.dump(json_list, fp)
