@@ -2,7 +2,7 @@
 Report and finding templates used by the Serpico reporting tool
 
 ## Install
-Run `scripts/run.sh` to pull the Serpico docker image and apply the templates in this repository
+Run `scripts/run.sh` to build a Serpico docker image and apply the templates in this repository
 
 ## Add report templates
 1. Create new report template .DOCX file
