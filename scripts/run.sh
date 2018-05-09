@@ -4,7 +4,7 @@ SQUASH_JSON_FILE='template_findings.json'
 CURL_COOKIE_JAR='/tmp/curl_cookie_jar'
 
 # Check CWD
-CURRENT_WORKING_DIR=`pwd | gawk -F '/' '{ print $NF }'`
+CURRENT_WORKING_DIR=`pwd | awk -F '/' '{ print $NF }'`
 if [[ "$CURRENT_WORKING_DIR" != "serpico-templates" ]]; then
     echo "Current working directory should be serpico-template repo"
     exit 1
