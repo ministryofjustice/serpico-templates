@@ -108,6 +108,7 @@ git pull
 # Check if docker and screen is installed
 hash openssl 2>/dev/null || { echo "openssl not found but required"; exit 1; }
 hash docker 2>/dev/null || { echo "docker not found but required"; exit 1; }
+hash python3 2>/dev/null || { echo "python3 not found but required"; exit 1; }
 
 PASSWORD=`openssl rand -base64 22 | sed 's#[=\+/]##g'`
 
