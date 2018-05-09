@@ -1,6 +1,6 @@
 # Originally author, https://github.com/ncolyer-r7
-FROM ubuntu:14.04
-MAINTAINER Todo
+FROM ubuntu:16.04
+MAINTAINER MoJ-SET
 
 # Packages & Environment Variables
 ENV SRP_ROOT /Serpico
