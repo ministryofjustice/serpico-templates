@@ -1,10 +1,11 @@
 #!/bin/bash
-version="0.1"
 #
-# This is an optional arguments-only example of Argbash potential
+# This is a rather minimal example Argbash potential
+# Example taken from http://argbash.readthedocs.io/en/stable/example.html
 #
 # ARG_OPTIONAL_INCREMENTAL([all-interfaces],[a],[Listen on all interfaces])
 # ARG_VERSION([echo run.sh v$version])
+# ARG_OPTIONAL_SINGLE([external-findings],[e],[External findings repository])
 # ARG_HELP([The general script's help msg])
 # ARGBASH_GO()
 # needed because of Argbash --> m4_ignore([
@@ -15,82 +16,97 @@ version="0.1"
 
 die()
 {
-    local _ret=$2
-    test -n "$_ret" || _ret=1
-    test "$_PRINT_HELP" = yes && print_help >&2
-    echo "$1" >&2
-    exit ${_ret}
+	local _ret=$2
+	test -n "$_ret" || _ret=1
+	test "$_PRINT_HELP" = yes && print_help >&2
+	echo "$1" >&2
+	exit ${_ret}
 }
 
 begins_with_short_option()
 {
-    local first_option all_short_options
-    all_short_options='avh'
-    first_option="${1:0:1}"
-    test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
+	local first_option all_short_options
+	all_short_options='aveh'
+	first_option="${1:0:1}"
+	test "$all_short_options" = "${all_short_options/$first_option/}" && return 1 || return 0
 }
-
-
 
 # THE DEFAULTS INITIALIZATION - OPTIONALS
 _arg_all_interfaces=0
+_arg_external_findings=
 
 print_help ()
 {
-    printf '%s\n' "The general script's help msg"
-    printf 'Usage: %s [-a|--all-interfaces] [-v|--version] [-h|--help]\n' "$0"
-    printf '\t%s\n' "-a,--all-interfaces: Listen on all interfaces"
-    printf '\t%s\n' "-v,--version: Prints version"
-    printf '\t%s\n' "-h,--help: Prints help"
+	printf '%s\n' "The general script's help msg"
+	printf 'Usage: %s [-a|--all-interfaces] [-v|--version] [-e|--external-findings <arg>] [-h|--help]\n' "$0"
+	printf '\t%s\n' "-a,--all-interfaces: Listen on all interfaces"
+	printf '\t%s\n' "-v,--version: Prints version"
+	printf '\t%s\n' "-e,--external-findings: External findings repository (no default)"
+	printf '\t%s\n' "-h,--help: Prints help"
 }
 
 parse_commandline ()
 {
-    while test $# -gt 0
-    do
-        _key="$1"
-        case "$_key" in
-            -a|--all-interfaces)
-                _arg_all_interfaces=$((_arg_all_interfaces + 1))
-                ;;
-            -a*)
-                _arg_all_interfaces=$((_arg_all_interfaces + 1))
-                _next="${_key##-a}"
-                if test -n "$_next" -a "$_next" != "$_key"
-                then
-                    begins_with_short_option "$_next" && shift && set -- "-a" "-${_next}" "$@" || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
-                fi
-                ;;
-            -v|--version)
-                echo run.sh v$version
-                exit 0
-                ;;
-            -v*)
-                echo run.sh v$version
-                exit 0
-                ;;
-            -h|--help)
-                print_help
-                exit 0
-                ;;
-            -h*)
-                print_help
-                exit 0
-                ;;
-            *)
-                _PRINT_HELP=yes die "FATAL ERROR: Got an unexpected argument '$1'" 1
-                ;;
-        esac
-        shift
-    done
+	while test $# -gt 0
+	do
+		_key="$1"
+		case "$_key" in
+			-a|--all-interfaces)
+				_arg_all_interfaces=$((_arg_all_interfaces + 1))
+				;;
+			-a*)
+				_arg_all_interfaces=$((_arg_all_interfaces + 1))
+				_next="${_key##-a}"
+				if test -n "$_next" -a "$_next" != "$_key"
+				then
+					begins_with_short_option "$_next" && shift && set -- "-a" "-${_next}" "$@" || die "The short option '$_key' can't be decomposed to ${_key:0:2} and -${_key:2}, because ${_key:0:2} doesn't accept value and '-${_key:2:1}' doesn't correspond to a short option."
+				fi
+				;;
+			-v|--version)
+				echo run.sh v$version
+				exit 0
+				;;
+			-v*)
+				echo run.sh v$version
+				exit 0
+				;;
+			-e|--external-findings)
+				test $# -lt 2 && die "Missing value for the optional argument '$_key'." 1
+				_arg_external_findings="$2"
+				shift
+				;;
+			--external-findings=*)
+				_arg_external_findings="${_key##--external-findings=}"
+				;;
+			-e*)
+				_arg_external_findings="${_key##-e}"
+				;;
+			-h|--help)
+				print_help
+				exit 0
+				;;
+			-h*)
+				print_help
+				exit 0
+				;;
+			*)
+				_PRINT_HELP=yes die "FATAL ERROR: Got an unexpected argument '$1'" 1
+				;;
+		esac
+		shift
+	done
 }
 
 parse_commandline "$@"
 
 SQUASH_JSON_FILE='template_findings.json'
 CURL_COOKIE_JAR='/tmp/curl_cookie_jar'
-
 LISTEN_ADDRESS=127.0.0.1
+
+EXTERNAL_FINDINGS=$_arg_external_findings
+
+echo "'$_arg_external_findings'"
+
 if [[ $_arg_all_interfaces != "" ]]; then
     LISTEN_ADDRESS=0.0.0.0
 fi
@@ -126,6 +142,12 @@ docker run -d -p $LISTEN_ADDRESS:443:8443 -it moj_serpico /bin/bash -l -c \
      ruby /Serpico/serpico.rb" || { echo "Already have a container listening on 443?"; exit 1; }
 
 sleep 2
+
+# Replace default finding templates with external source
+if [[ $_arg_external_findings != "" ]]; then
+    rm -rf template_findings
+    git pull $_arg_external_findings template_findings
+fi
 
 echo -n "Importing templates..."
 

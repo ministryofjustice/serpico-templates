@@ -13,7 +13,9 @@ RUN apt-get update && \
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Pull Down Serpico
-RUN git clone https://github.com/SerpicoProject/Serpico
+RUN git clone https://github.com/SerpicoProject/Serpico.git
+WORKDIR Serpico
+RUN git reset --hard 5f8828bcb4499a1c70277c26e4e3d6624d62285d
 WORKDIR $SRP_ROOT
 
 # Install Ruby
