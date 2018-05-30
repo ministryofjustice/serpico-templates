@@ -146,7 +146,9 @@ sleep 2
 # Replace default finding templates with external source
 if [[ $_arg_external_findings != "" ]]; then
     rm -rf template_findings
-    git pull $_arg_external_findings template_findings
+    git clone $_arg_external_findings tmp
+    mv tmp/template_findings template_findings
+    rm -rf tmp
 fi
 
 echo -n "Importing templates..."
