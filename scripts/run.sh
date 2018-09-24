@@ -132,6 +132,7 @@ PASSWORD=`openssl rand -base64 22 | sed 's#[=\+/]##g'`
 # Run instance
 # Set CVSS reporting
 # Set show_exceptions to True (report import bug otherwise)
+# Enable nessusmap, burpmap and vulnmap
 # Run Serpico
 docker build . -t moj_serpico
 
@@ -139,6 +140,9 @@ docker run -d -p $LISTEN_ADDRESS:443:8443 -it moj_serpico /bin/bash -l -c \
     "/usr/bin/yes | ruby /Serpico/scripts/manage_users.rb -u administrator -p $PASSWORD;
      sed -i 's#\"cvss\": false,#\"cvss\": false,\n  \"cvssv3\": true,#' /Serpico/config.json;
      sed -i 's#\"show_exceptions\": false,#\"show_exceptions\": true,#' /Serpico/config.json;
+     sed -i 's#\"nessusmap\": false,#\"nessusmap\": true,#' /Serpico/config.json;
+     sed -i 's#\"burpmap\": false,#\"burpmap\": true,#' /Serpico/config.json;
+     sed -i 's#\"vulnmap\": false,#\"vulnmap\": true,#' /Serpico/config.json;
      ruby /Serpico/serpico.rb" || { echo "Already have a container listening on 443?"; exit 1; }
 
 sleep 2
